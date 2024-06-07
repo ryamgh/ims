@@ -1,11 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class RolesService {
+  constructor(
+    private readonly prismaService: PrismaService,
+  ){}
+
   create(createRoleDto: CreateRoleDto) {
-    return 'This action adds a new role';
+    return this.prismaService.role.create({
+      data: createRoleDto,
+    });
   }
 
   findAll() {

@@ -14,7 +14,7 @@ datasource db {
 }
 model Role{
   @@map ("roles")
-  id Int @id
+  id Int @id @default(autoincrement())
   name String @db.VarChar(40) @unique
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
