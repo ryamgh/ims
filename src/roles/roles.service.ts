@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnsupportedMediaTypeException } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -29,22 +29,33 @@ export class RolesService {
   }
 
   async findOne(id: number): Promise<RoleEntity> {
-    const role = await this.prismaService.role
-      .findFirst({ where: { id } });
-
-    if (!role) {
-      throw new NotFoundException();
-    }
-    return role;
+   return this.checkIfRoleExists(id);
   }
 
-  update(id: number, updateRoleDto: UpdateRoleDto) {
-    return `This action updates a #${id} role`;
+  async update(id: number, updateRoleDto: UpdateRoleDto) {
+    await this.checkIfRoleExists(id);
+
+    const roleExits= await this.checkIfRoleExistsByName(updateRoleDto.name,id);
+
+    if (!roleExits){
+      throw new BadRequestException(`Role ${updateRoleDto.name} already exists.`)
+
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} role`;
+  return this.prismaService.role
+  .update({
+    where: {
+      id,
+    },
+    data: updateRoleDto,
+  });
+}
+
+  async remove(id: number) {
+    await this.checkIfRoleExists(id);
+    return this.prismaService.role.delete({where: {id}});
   }
+
 private async checkIfRoleExists(id: number): Promise<RoleEntity>{
   const role =await this.prismaService.role
   .findFirst({where: {id}});
@@ -55,7 +66,8 @@ private async checkIfRoleExists(id: number): Promise<RoleEntity>{
   return role;
 }
 private async checkIfRoleExistsByName(name: string, id?: number): Promise<boolean>{
-  const checkRoleExists= await this.prismaService.role.findUnique({where: {name}});
+  const checkRoleExists= await this.prismaService.role
+  .findUnique({where: {name}});
 
   if (id){
     return checkRoleExists ? checkRoleExists.id === id: true;
