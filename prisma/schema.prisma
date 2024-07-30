@@ -35,4 +35,22 @@ model User {
   updated_at DateTime @default(now())
 
   role Role @relation(references: [id], fields: [role_id], onDelete: Cascade)
+  items Item[]
+}
+
+model Item{//model name in pascal case and singular
+  @@map("items")// table name in small case and plural
+
+  id Int @id @default(autoincrement())
+  user_id Int
+  name String @unique
+  description String? @db.Text
+  quantity Int @default(0)
+  price Decimal @db.Decimal(10,2) @default(0.00)
+  discount Decimal @db.Decimal(5,2) @default(0.00)
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+  
+  user User @relation(references: [id], fields: [user_id], onDelete: Cascade)
+
 }
